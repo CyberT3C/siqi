@@ -1,9 +1,12 @@
 // An attribute to hide warnings for unused code.
 // we are learning atm, so lets just try things
-#![allow(dead_code)]
+//#![allow(dead_code)]
 //use std::collections::HashSet;
 //use std::collections::HashMap;
 use std::collections::BTreeMap;
+
+// lets try to write our binary tree to a file and read it afterwards
+use serde::{Deserialize, Serialize};
 
 enum Action {
     Add,
@@ -63,7 +66,7 @@ fn inspect_action( action: Action) {
  * efficiency
  *
 */
-
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct TaskItem {
     name: String,
     priority: u8,
@@ -105,6 +108,16 @@ impl SortedTaskList {
             println!("Task: {}, Done = {}", item.name, item.done);
         }
         
+    }
+
+    fn to_yaml(&self) -> String {
+        let yaml = serde_yaml::to_string(&self.data);
+        // this is type result
+        let test = match yaml {
+            Ok(yaml) => yaml,
+            Err(_error) => panic!("empty"),
+        };
+        test
     }
 }
 fn main() {
@@ -181,4 +194,6 @@ fn main() {
     task_list.remove_by_index(0);
     task_list.remove_by_index(1);
     task_list.print();
+
+    println!("{}", task_list.to_yaml());
 }
