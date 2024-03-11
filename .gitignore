@@ -1,7 +1,9 @@
 target/
-testoutput/
 
 Cargo.lock
+
+# app state
+*.task
 
 #rustfmt
 **/*.rs.bk
