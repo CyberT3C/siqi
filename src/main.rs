@@ -6,9 +6,9 @@ use std::collections::BTreeMap;
  *
  *
  * TODO today
- * [ ] write yaml to file
- * [ ] read yaml from file
- * [ ] transfer data from read buffer into a my data format
+ * [X] write yaml to file
+ * [X] read yaml from file
+ * [X] transfer data from read buffer into a my data format
  *
  * TODO next week
  * [ ] build full POC with
@@ -67,7 +67,29 @@ impl SortedTaskList {
         };
         test
     }
+
+    fn to_file(&self) -> std::io::Result<()> {
+        let filename = String::from("testoutput/task.yaml"); // default is task.yaml; maybe something like default.task later wich will // get read automatically on startup?
+        let result = std::fs::write(filename, self.to_yaml());
+        result
+    }
+
+    fn from_string(tasks: &str) -> Self {
+         let values: BTreeMap<usize, TaskItem> = serde_yaml::from_str(tasks).unwrap(); 
+         SortedTaskList {
+             data: values,
+         }
+    }
 }
+
+fn read_file() -> std::string::String {
+    let input = std::fs::read_to_string("testoutput/task.yaml");
+    match input {
+        Ok(yaml) => yaml,
+        Err(_error) => panic!("empty"),
+    }
+}
+
 fn main() {
     let mut task_list = SortedTaskList::new();
     for i in 1..10 {
@@ -77,5 +99,11 @@ fn main() {
     task_list.remove_by_index(1);
     task_list.print();
 
-    println!("{}", task_list.to_yaml());
+    //println!("{}", task_list.to_yaml());
+    let write_result = task_list.to_file();
+    let read = read_file();
+    let mut new_list = SortedTaskList::from_string(&read);
+
+    println!("----------------------");
+    new_list.print();    
 }
