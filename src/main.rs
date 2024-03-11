@@ -27,7 +27,7 @@ struct TaskItem {
 }
 
 struct SortedTaskList {
-    data: BTreeMap<usize, TaskItem>, // usize is for mem indices and sizes it depends on the target architeture e.g. 32 or 64 bits
+    data: BTreeMap<usize, TaskItem>, 
 }
 
 impl SortedTaskList {
@@ -60,33 +60,33 @@ impl SortedTaskList {
 
     fn to_yaml(&self) -> String {
         let yaml = serde_yaml::to_string(&self.data);
-        // this is type result
-        let test = match yaml {
+        match yaml {
             Ok(yaml) => yaml,
             Err(_error) => panic!("empty"),
-        };
-        test
+        }
     }
 
-    fn to_file(&self) -> std::io::Result<()> {
-        let filename = String::from("testoutput/task.yaml"); // default is task.yaml; maybe something like default.task later wich will // get read automatically on startup?
+    fn from_yaml(tasks: &str) -> Self {
+        SortedTaskList {
+            data: serde_yaml::from_str(tasks).unwrap(),
+        }
+    }
+
+    fn write_file(&self) -> std::io::Result<()> {
+        let filename = String::from("testoutput/task.yaml");
+        // default is task.yaml; maybe something like default.task later wich will
+        // get read automatically on startup?
         let result = std::fs::write(filename, self.to_yaml());
         result
     }
 
-    fn from_string(tasks: &str) -> Self {
-         let values: BTreeMap<usize, TaskItem> = serde_yaml::from_str(tasks).unwrap(); 
-         SortedTaskList {
-             data: values,
-         }
-    }
-}
-
-fn read_file() -> std::string::String {
-    let input = std::fs::read_to_string("testoutput/task.yaml");
-    match input {
-        Ok(yaml) => yaml,
-        Err(_error) => panic!("empty"),
+    fn read_file() -> Self {
+        let input = std::fs::read_to_string("testoutput/task.yaml");
+        let yaml = match input {
+            Ok(yaml) => yaml,
+            Err(_error) => panic!("empty"),
+        };
+        SortedTaskList::from_yaml(&yaml)
     }
 }
 
@@ -99,11 +99,9 @@ fn main() {
     task_list.remove_by_index(1);
     task_list.print();
 
-    //println!("{}", task_list.to_yaml());
-    let write_result = task_list.to_file();
-    let read = read_file();
-    let mut new_list = SortedTaskList::from_string(&read);
+    let _ = task_list.write_file();
 
     println!("----------------------");
-    new_list.print();    
+    let new_list = SortedTaskList::read_file();
+    new_list.print();
 }
