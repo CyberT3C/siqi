@@ -8,9 +8,15 @@ use std::io::prelude::*;
  * https://github.com/dtolnay/serde-yaml
  *
  *
- * TODO 
+ * TODO
  * [X] refactore read write into file type / class / interfaces whatever?
- * [ ] Change Yaml format, Index Information is already stored by order and not needed!
+ * [X] Change Yaml format, Index Information is already stored by order and not needed!
+ * [ ] -> serde::yaml doesnt fit my requirements
+ *      -> I need to write my own parser
+ *      -> I have a super limited scope so its actually finde to do
+ *      [ ] write to_yaml for TaskItem
+ *      [ ] write from_yaml for TaskItem
+ *      [ ] refactor fn *yaml for SortedTaskList
  *
  * TODO next week
  * [ ] build full POC with
@@ -19,8 +25,8 @@ use std::io::prelude::*;
  *      - list tasks
  *
  * TODO week after
- * [ ] build with nix 
- * [ ] add cli support 
+ * [ ] build with nix
+ * [ ] add cli support
  *      - move up
  *      - move down
  */
@@ -30,6 +36,15 @@ struct TaskItem {
     name: String,
     priority: u8,
     done: bool,
+}
+
+impl TaskItem {
+    fn to_yaml(&self) -> String {
+        todo!()
+    }
+    fn from_yaml(&self) -> String {
+        todo!()
+    }
 }
 
 struct SortedTaskList {
@@ -64,12 +79,21 @@ impl SortedTaskList {
         }
     }
 
+
+
     fn to_yaml(&self) -> String {
-        let yaml = serde_yaml::to_string(&self.data);
-        match yaml {
-            Ok(yaml) => yaml,
-            Err(_error) => panic!("empty"),
+        // let yaml = serde_yaml::to_string(&self.data);
+        // match yaml {
+        //     Ok(yaml) => yaml,
+        //     Err(_error) => panic!("empty"),
+        // }
+        let root_node_name = String::from("task:\n");
+        let mut yaml = String::new();
+        for (_, item) in &self.data {
+            let node_yaml = root_node_name.clone() + &item.to_yaml();
+            yaml += &node_yaml;
         }
+        yaml
     }
 
     fn from_yaml(tasks: &str) -> Self {
@@ -77,7 +101,6 @@ impl SortedTaskList {
             data: serde_yaml::from_str(tasks).unwrap(),
         }
     }
-
 }
 
 struct TaskFileIO {
