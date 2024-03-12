@@ -14,8 +14,8 @@ use std::io::prelude::*;
  * [ ] -> serde::yaml doesnt fit my requirements
  *      -> I need to write my own parser
  *      -> I have a super limited scope so its actually finde to do
- *      [ ] write to_yaml for TaskItem
- *      [ ] write from_yaml for TaskItem
+ *      [X] write to_yaml for TaskItem
+ *      [ ] read from_yaml for TaskItem
  *      [ ] refactor fn *yaml for SortedTaskList
  *
  * TODO next week
@@ -39,8 +39,20 @@ struct TaskItem {
 }
 
 impl TaskItem {
-    fn to_yaml(&self) -> String {
-        todo!()
+    fn to_yaml(&self, node_depth: u8) -> String {
+        let prefix = String::from("  ");
+        let mut prefix_depth = String::new();
+        let eol = String::from("\n");
+        for _ in 0 .. node_depth {
+            prefix_depth += &prefix;
+        }
+        let name_prefix = &"name: ";
+        let priority_prefix = &"prio: ";
+        let done_prefix = &"done: ";
+        let mut item_as_string = prefix_depth.clone() + name_prefix + &self.name.clone() + &eol;
+        item_as_string = item_as_string + &prefix_depth + priority_prefix + &self.priority.to_string() + &eol;
+        item_as_string = item_as_string + &prefix_depth + done_prefix + &self.done.to_string() + &eol;
+        item_as_string
     }
     fn from_yaml(&self) -> String {
         todo!()
@@ -90,7 +102,7 @@ impl SortedTaskList {
         let root_node_name = String::from("task:\n");
         let mut yaml = String::new();
         for (_, item) in &self.data {
-            let node_yaml = root_node_name.clone() + &item.to_yaml();
+            let node_yaml = root_node_name.clone() + &item.to_yaml(1);
             yaml += &node_yaml;
         }
         yaml
