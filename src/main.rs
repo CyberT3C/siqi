@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 use std::fs::File;
@@ -30,7 +29,6 @@ use std::io::prelude::*;
  *      - move down
  */
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct TaskItem {
     name: String,
     done: bool,
