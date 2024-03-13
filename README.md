@@ -54,7 +54,14 @@
 ## About The Project
 Creating a super simple task cli tool.
 
-I want to learn rust and this is my project to do so.
+Project Management Tools are nice and super helpfull but they take alot of effort to setup and customize. Alot of the time the best way to star a project is by "just do it!". For that is like init git and create a readme.md file. I always end up bulding a todo.txt or todo.md or write the first todos as comments straight into my code file. To standardize this process i am creating this simple tool. If it will be handy, I will end up support integration to other tools with UI.
+
+Also nice to have everything it git. Alot of the tools are using a database or a special file format. Thats why i am just using a simple .yaml notation
+
+My longterm goal is to build a simple cli tool which will store tasks in a `default.task` file in the current directory.
+Publish / Update tasks from default file into `README.md`.
+
+PS: I want to learn rust and this is my project to do so.
 
 ### Built With
 
@@ -106,22 +113,35 @@ Docs - missing link
 
 <!-- ROADMAP -->
 ## Roadmap
-
+ 
 - [X] Initial Readme
 - [ ] Create Alpha Version
-    - [ ] Build a task list 
-    - [ ] Save to file
-    - [ ] Read from file
-    - [ ] Add task
-    - [ ] Delete task
+    - [X] Build a task list 
+    - [X] Save to file
+    - [X] Read from file
+    - [X] Add task
+    - [X] Delete task
+    - [ ] View all tasks
+    - [ ] Mark task as done
     - [ ] Edit task
+    - [ ] Create cli integration
+        - Add MoveUp Feature
+        - Add MoveDown Feature
+- [ ] Code Review
+- [ ] Refactor Codebase
 - [ ] Update Readme 
 - [ ] Add Changelog
+- [ ] Build with nix
 - [ ] Release v0.1
-- [ ] Suppoer different OSs
+- [ ] Support different OSs
     - [ ] Linux
     - [ ] Windows
     - [ ] Mac
+
+My longterm goal is to build a simple cli tool which will store tasks in a `default.task` file in the current directory.
+Publish / Update tasks from `default.task` file into `README.md` - I am talking about "root" tasks.
+
+Maybe: Integrate this tool with other task / project management tools, like Github, Gitlab or Jira.
 
 See the [open issues](https://github.com/CyberT3C/siqi/issues) for a full list of proposed features (and known issues).
 
