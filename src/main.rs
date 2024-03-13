@@ -1,40 +1,48 @@
-use std::collections::BTreeMap;
+#![allow(dead_code)]
 
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::prelude::*;
 
+// add cli support
+use std::env;
+
+
 /* https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
- *
- *
- * TODO
- * [X] refactore read write into file type / class / interfaces whatever?
- * [X] Change Yaml format, Index Information is already stored by order and not needed!
- * [X] -> serde::yaml doesnt fit my requirements
- *      -> I need to write my own parser
- *      -> I have a super limited scope so its actually finde to do
- *      [X] write to_yaml for TaskItem
- *      [X] read from_yaml for TaskItem
- *      [X] refactor fn *yaml for SortedTaskList
  *
  * TODO next week
  * [ ] build full POC with
  *      - add task
- *      - delete task
- *      - list tasks
+ *      - mark as done
  *
  * TODO week after
  * [ ] build with nix
- * [ ] add cli support
+ * [X] add cli support
+ * [ ] add cli options and map them
+ *      - list tasks
+ *      - add task
+ *      - task done
  *      - move up
  *      - move down
+ *
+ * New thing i learned is that "///" are doc comments
+ * [ ] add doc comments to my code
  */
 
+/// Simple structure to represent a task.
+///
+/// default done = false
+/// set done = true when the task is completed
 struct TaskItem {
     name: String,
     done: bool,
 }
 
 impl TaskItem {
+    /// Gives you the `TaskItem` as a yaml represantion
+    /// provide a `node_depth`. The depth will insert two spaces per number.
+    /// 
+    /// Example: missing
     fn to_yaml(&self, node_depth: u8) -> String {
         let prefix = String::from("  ");
         let mut prefix_depth = String::new();
@@ -111,6 +119,8 @@ impl SortedTaskList {
     }
 
     fn remove_by_index(&mut self, index: usize) {
+        // I could use the rutrn value Some, None to print a verbose output
+        // Could not remove because it's not in the list?
         self.data.remove(&index);
     }
 
@@ -127,9 +137,8 @@ impl SortedTaskList {
             };
             self.data.insert(index, updated_task);
         } else {
-            println!("index not found");
+            println!("Error: cannot find task with index {}", index);
         }
-        
     }
 
     fn print(&self) {
@@ -137,7 +146,8 @@ impl SortedTaskList {
             println!("Task: {}, Done = {}", item.name, item.done);
         }
     }
-
+    
+    /// TaskList as yaml string
     fn to_yaml(&self) -> String {
         let root_node_name = String::from("task:\n");
         let mut yaml = String::new();
@@ -147,7 +157,8 @@ impl SortedTaskList {
         }
         yaml
     }
-
+    
+    /// Build TaskList from yaml string
     fn from_yaml(yaml: String) -> Self {
         let root_node_name = String::from("task:\n");
 
@@ -172,9 +183,11 @@ impl SortedTaskList {
         // becaus i will only have a end an my if (index +1) will trigger
         let mut toggle = true;
         for (index, &i) in root_node_positions.iter().enumerate() {
-            // lets get the tuple?
-            // I mean modulo on index maybe much bette performance
-            // but the question is do I always skip the 1, 3, 5... or can it change later on ?
+            // is "if x % 2 faster then "if aBool" and "toggle bool" - I always skip the 0, 2, 4... 
+            // atm i think: YES! Modulo is super performant in every chipset and one operation
+            // instead of two is much faster here. I mean storing toggle is even a slow memory
+            // operation, right? Maybe the rust compiler will just optimize this code, so it
+            // doenst matter. I need to look at the assembly and find out myself
             if toggle {
                 toggle = false;
                 continue;
@@ -202,7 +215,10 @@ struct TaskFileIO {
     filename: String,
 }
 
+/// Read and write `SortedTaskList` as file.
 impl TaskFileIO {
+    /// always in the current `.` directory
+    /// only works with filename as `default.task`
     fn new() -> Self {
         TaskFileIO {
             path: String::from("./"), // change this for debug only later but i dont know
@@ -211,20 +227,10 @@ impl TaskFileIO {
     }
 
     fn write_file(&self, yaml: String) -> () {
-        // we only operate in the current directory
-        // let mut path = std::path::Path::new(&self.path);
-        // let display = path.display();
-        // if !path.exists() {
-        //     let res = std::fs::create_dir(path);
-        //     match res {
-        //         Ok(x) => (),
-        //         Err(e) => panic!("cannot create directory!"),
-        //     }
-        // }
-
         let full_path = format!("{}{}", self.path, self.filename);
         let path = std::path::Path::new(&full_path);
         let display = path.display();
+
         // change write mode later on
         // I dont wanna desotroy the content in file or do I?
         // Open a file in write-only mode, returns `io::Result<File>`
@@ -257,27 +263,76 @@ impl TaskFileIO {
     }
 }
 
-fn main() {
-    let mut task_list = SortedTaskList::new();
-    for i in 0..9 {
-        let new_task = TaskItem {
-            name: "task ".to_string() + &i.to_string(),
-            done: false,
-        };
-
-        task_list.push(new_task);
-    }
-    //    task_list.remove_by_index(0);
-    //    task_list.remove_by_index(1);
-    task_list.print();
-
-    println!("----------------------");
-
-    let task_file_io = TaskFileIO::new();
-    task_file_io.write_file(task_list.to_yaml());
-    let mut task_list_from_file = SortedTaskList::from_yaml(task_file_io.read_file());
-    task_list_from_file.task_done_by_index(5);
-    task_list_from_file.task_done_by_index(1);
-    task_list_from_file.task_done_by_index(100); // print error?
-    task_list_from_file.print();
+struct TaskCli {
+    action: char
 }
+
+impl TaskCli {
+
+}
+
+fn main() {
+    
+    let args: Vec<String> = env::args().collect();
+
+        // Check if there are enough arguments
+    if args.len() < 3 {
+        println!("Usage: clicommand <option(s)> <command string>");
+        return;
+    }
+
+    // Parse the options and command string
+    let options = &args[1];
+    let command_string = &args[2];
+
+    // Handle options
+    for c in options.chars() {
+        match c {
+            'a' => function_a(command_string),
+            'b' => function_b(command_string),
+            _ => println!("Unknown option: {}", c),
+        }
+    }
+
+
+   // let mut task_list = SortedTaskList::new();
+   // for i in 0..9 {
+   //     let new_task = TaskItem {
+   //         name: "task ".to_string() + &i.to_string(),
+   //         done: false,
+   //     };
+
+   //     task_list.push(new_task);
+   // }
+
+   // task_list.remove_by_index(0);
+   // task_list.remove_by_index(9);
+   // task_list.remove_by_index(50);
+   // task_list.print();
+
+   // let task_file_io = TaskFileIO::new();
+   // task_file_io.write_file(task_list.to_yaml());
+
+   // println!("----------------------");
+
+   // let mut task_list_from_file = SortedTaskList::from_yaml(task_file_io.read_file());
+   // task_list_from_file.task_done_by_index(5);
+   // task_list_from_file.task_done_by_index(1);
+   // task_list_from_file.task_done_by_index(100);
+   // task_list_from_file.print();
+}
+
+
+
+fn function_a(command_string: &str) {
+    println!("exec fn A with command: {}", command_string);
+}
+
+fn function_b(command_string: &str) {
+    println!("exec fn B with command: {}", command_string);
+}
+
+
+
+
+
