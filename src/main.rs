@@ -8,22 +8,29 @@ use std::io::prelude::*;
 use std::env;
 
 
+// Mein Todo gerade ist es die CLI options ordentlich zu parsen.
+// Aktuell einfach Kraut und Rüben. Allerdings bin ich mir noch unsicher wie das am besten geht.
+// Danach dann direkt speichern und laden bei beginn / ende triggern.
+// In meinem fall read/write vom default file
+
 /* https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
  *
  * TODO next week
  * [ ] build full POC with
- *      - add task
- *      - mark as done
+ *      - [X] add task
+ *      - [ ] mark as done - missing index handling
  *
  * TODO week after
  * [ ] build with nix
  * [X] add cli support
  * [ ] add cli options and map them
- *      - list tasks
- *      - add task
- *      - task done
- *      - move up
- *      - move down
+ * CLI supper buggy atm and option parsing ist not really implemented
+ * i just made a quick test while "sleeping"
+ *      - [X] list tasks
+ *      - [X] add task
+ *      - [X] task done
+ *      - [ ] move up
+ *      - [ ] move down
  *
  * New thing i learned is that "///" are doc comments
  * [ ] add doc comments to my code
@@ -41,7 +48,7 @@ struct TaskItem {
 impl TaskItem {
     /// Gives you the `TaskItem` as a yaml represantion
     /// provide a `node_depth`. The depth will insert two spaces per number.
-    /// 
+    ///
     /// Example: missing
     fn to_yaml(&self, node_depth: u8) -> String {
         let prefix = String::from("  ");
@@ -143,10 +150,10 @@ impl SortedTaskList {
 
     fn print(&self) {
         for (_, item) in self.data.iter() {
-            println!("Task: {}, Done = {}", item.name, item.done);
+            println!("{} - {}", match item.done { true => "[X]", false => "[ ]", }, item.name);
         }
     }
-    
+
     /// TaskList as yaml string
     fn to_yaml(&self) -> String {
         let root_node_name = String::from("task:\n");
@@ -157,7 +164,7 @@ impl SortedTaskList {
         }
         yaml
     }
-    
+
     /// Build TaskList from yaml string
     fn from_yaml(yaml: String) -> Self {
         let root_node_name = String::from("task:\n");
@@ -183,7 +190,7 @@ impl SortedTaskList {
         // becaus i will only have a end an my if (index +1) will trigger
         let mut toggle = true;
         for (index, &i) in root_node_positions.iter().enumerate() {
-            // is "if x % 2 faster then "if aBool" and "toggle bool" - I always skip the 0, 2, 4... 
+            // is "if x % 2 faster then "if aBool" and "toggle bool" - I always skip the 0, 2, 4...
             // atm i think: YES! Modulo is super performant in every chipset and one operation
             // instead of two is much faster here. I mean storing toggle is even a slow memory
             // operation, right? Maybe the rust compiler will just optimize this code, so it
@@ -263,76 +270,126 @@ impl TaskFileIO {
     }
 }
 
+enum TaskAction {
+    Add,
+    List,
+    Finished,
+    Nil,
+}
+
+// Do I need a ActionList or not?
 struct TaskCli {
-    action: char
+    action: TaskAction,
+    command: String,
 }
 
 impl TaskCli {
+    fn new(args: Vec<String>) -> Self {
+        // Check if there are enough arguments
 
+        let mut tcli = TaskCli {
+            action: TaskAction::Nil,
+            command: String::new(),
+        };
+
+        let len = args.len();
+        // if len < 1 {
+        //     panic!();
+        // } else {
+        //     println!("Too many arguments.");
+        //     println!("Usage: clicommand <option(s)> <command string>");
+        // }
+
+        // the question is do I need another logic here
+        // match param 1 e.g. list
+        // match param 2 e.g. add
+        // maybe match param 3 for other options in the future?
+        if len > 1 {
+            let options = &args[1];
+
+            // Handle options
+            let mut param = false;
+            for c in options.chars() {
+                match c {
+                    '-' => param = true,
+                    'l' if param => tcli.action = TaskAction::List,
+                    _ => (), //maybe just with more params so ignore
+                }
+            }
+
+            if len > 2 {
+                tcli.command = args[2].as_str().to_string();
+                for c in options.chars() {
+                    match c {
+                        // is already true from before '-' => param = true,
+                        'a' if param => tcli.action = TaskAction::Add,
+                        'f' if param => tcli.action = TaskAction::Finished,
+                        _ => println!("Unknown option: {}", c),
+                    }
+                }
+            }
+        } else {
+            println!("Usage: clicommand <option(s)> <command string>");
+        }
+        tcli
+    }
+
+    fn execute_action(&self, task_list: &mut SortedTaskList) {
+        match &self.action {
+            TaskAction::List =>
+            //println!("action: list"),
+            {
+                task_list.print()
+            }
+            TaskAction::Add => {
+                println!("action: add");
+                let new_task = TaskItem {
+                    name: self.command.clone(),
+                    done: false,
+                };
+                task_list.push(new_task);
+            },
+            TaskAction::Finished => {
+                task_list.task_done_by_index(1);
+            },
+            TaskAction::Nil => println!("no action"),
+        }
+    }
 }
 
 fn main() {
-    
+    // init state
+
+    let task_file_io = TaskFileIO::new();
+    let mut task_list;
     let args: Vec<String> = env::args().collect();
 
-        // Check if there are enough arguments
-    if args.len() < 3 {
-        println!("Usage: clicommand <option(s)> <command string>");
-        return;
-    }
+/* at startup
+ * read everything from default file
+ */
+    task_list = SortedTaskList::from_yaml(task_file_io.read_file());
 
-    // Parse the options and command string
-    let options = &args[1];
-    let command_string = &args[2];
+    let cli = TaskCli::new(args);
+    cli.execute_action(&mut task_list);
 
-    // Handle options
-    for c in options.chars() {
-        match c {
-            'a' => function_a(command_string),
-            'b' => function_b(command_string),
-            _ => println!("Unknown option: {}", c),
-        }
-    }
+/* before end save everything
+ *
+ */
+    task_file_io.write_file(task_list.to_yaml());     
 
+    // task_list.remove_by_index(0);
+    // task_list.remove_by_index(9);
+    // task_list.remove_by_index(50);
+    // task_list.print();
 
-   // let mut task_list = SortedTaskList::new();
-   // for i in 0..9 {
-   //     let new_task = TaskItem {
-   //         name: "task ".to_string() + &i.to_string(),
-   //         done: false,
-   //     };
+    // let task_file_io = TaskFileIO::new();
+    // task_file_io.write_file(task_list.to_yaml());
 
-   //     task_list.push(new_task);
-   // }
+    // println!("----------------------");
 
-   // task_list.remove_by_index(0);
-   // task_list.remove_by_index(9);
-   // task_list.remove_by_index(50);
-   // task_list.print();
-
-   // let task_file_io = TaskFileIO::new();
-   // task_file_io.write_file(task_list.to_yaml());
-
-   // println!("----------------------");
-
-   // let mut task_list_from_file = SortedTaskList::from_yaml(task_file_io.read_file());
-   // task_list_from_file.task_done_by_index(5);
-   // task_list_from_file.task_done_by_index(1);
-   // task_list_from_file.task_done_by_index(100);
-   // task_list_from_file.print();
+    // let mut task_list_from_file = SortedTaskList::from_yaml(task_file_io.read_file());
+    // task_list_from_file.task_done_by_index(5);
+    // task_list_from_file.task_done_by_index(1);
+    // task_list_from_file.task_done_by_index(100);
+    // task_list_from_file.print();
 }
-
-
-
-fn function_a(command_string: &str) {
-    println!("exec fn A with command: {}", command_string);
-}
-
-fn function_b(command_string: &str) {
-    println!("exec fn B with command: {}", command_string);
-}
-
-
-
-
-
