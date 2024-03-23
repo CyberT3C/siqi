@@ -94,7 +94,7 @@ To get a local copy up and running follow these simple example steps.
    ```
 4. Build
    ```sh
-   missing
+    cargo build
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -102,9 +102,18 @@ To get a local copy up and running follow these simple example steps.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-```bash
-git clone 
-cargo run
+```bash 
+Usage: command [options] <arguments>
+
+Options
+    list
+    add <task-name>
+    done <index>
+
+# e.g.
+siqi add "this is a new task"
+siqi done 1
+siqi list
 ```
 
 Docs - missing link
@@ -121,15 +130,14 @@ Docs - missing link
     - [X] Read from file
     - [X] Add task
     - [X] Delete task
-    - [ ] View all tasks
-    - [ ] Mark task as done
+    - [X] View all tasks
+    - [X] Mark task as done
     - [ ] Edit task
-    - [ ] Create cli integration
-        - Add MoveUp Feature
-        - Add MoveDown Feature
+    - [X] Create cli integration
+        - [ ] Add MoveUp Feature
+        - [ ] Add MoveDown Feature
 - [ ] Code Review
 - [ ] Refactor Codebase
-- [ ] Update Readme 
 - [ ] Add Changelog
 - [ ] Build with nix
 - [ ] Release v0.1
