@@ -124,6 +124,7 @@ Docs - missing link
 ## Roadmap
  
 - [X] Initial Readme
+- [X] Create local POC
 - [ ] Create Alpha Version
     - [X] Build a task list 
     - [X] Save to file
@@ -132,7 +133,7 @@ Docs - missing link
     - [X] Delete task
     - [X] View all tasks
     - [X] Mark task as done
-    - [ ] Edit task
+    - [ ] Uncheck done task
     - [X] Create cli integration
         - [ ] Add MoveUp Feature
         - [ ] Add MoveDown Feature

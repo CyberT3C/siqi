@@ -7,19 +7,10 @@ use std::io::prelude::*;
 // add cli support
 use std::env;
 
-// [X] Lets make a cli input parser
-// [X] Make the parser less dumb :)
-// [X] Connect parser to actions
-
 /* https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
  *
- * TODO next week
- * [X] build full POC with
- *      - [X] add task
- *      - [X] mark as done - missing index handling
- *
  * TODO week after
- * [ ] build with nix
+ * [X] build with nix
  * [X] add cli support
  * [X] add cli options and map them
  * CLI supper buggy atm and option parsing ist not really implemented
@@ -56,15 +47,17 @@ impl TaskItem {
             prefix_depth += &prefix;
         }
         let name_prefix = &"name: ";
-        //let priority_prefix = &"prio: ";
         let done_prefix = &"done: ";
         let mut item_as_string = prefix_depth.clone() + name_prefix + &self.name.clone() + &eol;
-        //item_as_string =
-        //   item_as_string + &prefix_depth + priority_prefix + &self.priority.to_string() + &eol;
         item_as_string =
             item_as_string + &prefix_depth + done_prefix + &self.done.to_string() + &eol;
         item_as_string
     }
+    /// Gives a `TaskItem` from a yaml string
+    /// provide the String
+    ///
+    /// TODO: Mode with different EOL Symbols?
+    /// Do we care about nexted nodes?
     fn from_yaml(yaml: &String) -> Self {
         // parse line by line and match key to struct
         let name_node = String::from("name: ");
@@ -238,6 +231,8 @@ impl TaskFileIO {
         }
     }
 
+    /// Will write the yaml string to the specified file
+    /// Set `path` and `fileneame` before usage 
     fn write_file(&self, yaml: String) -> () {
         let full_path = format!("{}{}", self.path, self.filename);
         let path = std::path::Path::new(&full_path);
@@ -256,7 +251,9 @@ impl TaskFileIO {
             Ok(_) => println!("successfully wrote to {}", display),
         }
     }
-
+    
+    /// reads from file and 
+    /// returns the yamls as std::String
     fn read_file(&self) -> String {
         let full_path = format!("{}{}", self.path, self.filename);
         let path = std::path::Path::new(&full_path);
@@ -282,38 +279,42 @@ enum Action {
     Nop, // No Operation
 }
 
-// Looks like this struct is at the moment more like a Operator for SortedTaskList
-// I could just store the task_list inside here
-struct TaskCli {
-    input: String,
+struct TaskOperator {
+    list: SortedTaskList,
 }
 
-impl TaskCli {
-    fn parse_cli_input(args: Vec<String>, task_list: &mut SortedTaskList) -> Self {
-        // Simple state machine with two states { false, true }
+impl TaskOperator {
+    fn new(yaml: String) -> Self {
+        TaskOperator {
+            list: SortedTaskList::from_yaml(yaml),
+        }
+    }
+
+    fn parse_commandstring(&mut self, args: Vec<String>) {
+        // simple state machine with two states { false, true }
         // because we take one argmuent decide what is it is, set a state and do stuff in that
 
-        // I have two options to process further own, just execute the corresponding function when
+        // i have two options to process further own, just execute the corresponding function when
         // i have the cli input but then i cannot interact between two actions or do stuff in
         // between or before executing that things
         //
-        // I will just start with a stright execute for my Alpha Version
+        // i will just start with a stright execute for my alpha version
         // and refactor that later on into a action list which will get returned and give more
         // possibilities and better code to maintain in the long run
-        // Also i dont need to pass task_list into this function which doesnt make sense
+        // also i dont need to pass task_list into this function which doesnt make sense
 
         let mut parse_option = Action::Nop;
 
         for parameter in args.iter().skip(1) {
             match parse_option {
                 Action::Nop => {
-                    // Default: when we dont have a multi value Input or just a new one
+                    // default: when we dont have a multi value input or just a new one
                     match parameter.as_str() {
                         "add" => {
                             parse_option = Action::Add;
                         }
                         "list" => {
-                            task_list.print();
+                            self.list.print();
                             parse_option = Action::Nop;
                         }
                         "done" => {
@@ -331,46 +332,40 @@ impl TaskCli {
                         name: parameter.clone(),
                         done: false,
                     };
-                    task_list.push(new_task);
+                    self.list.push(new_task);
                 }
                 Action::Done => {
                     let index = match parameter.parse::<usize>() {
                         Ok(u) => u,
                         Err(e) => panic!(), // print error message abort
                     };
-                    task_list.task_done_by_index(index);
+                    self.list.task_done_by_index(index);
                 }
                 _ => {
                     println!("no action");
                     // panic with error? bug?
-                    // We should never reach this State!
+                    // we should never reach this state!
                 }
             }
-        }
-
-        TaskCli {
-            input: String::from("rtest"),
         }
     }
 }
 
-
 fn main() {
-    // init state
-
+    /* create io
+     * get command line options and argmunets
+     */
     let task_file_io = TaskFileIO::new();
-    let mut task_list;
     let args: Vec<String> = env::args().collect();
 
     /* at startup
      * read everything from default file
      */
-    task_list = SortedTaskList::from_yaml(task_file_io.read_file());
+    let mut cli = TaskOperator::new(task_file_io.read_file());
+    cli.parse_commandstring(args);
 
-    let cli = TaskCli::parse_cli_input(args, &mut task_list);
-
-    /* before end save everything
-     *
+    /* before end 
+     * save everything
      */
-    task_file_io.write_file(task_list.to_yaml());
+    task_file_io.write_file(cli.list.to_yaml());
 }
