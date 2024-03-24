@@ -18,11 +18,11 @@ use std::env;
  *      - [X] list tasks
  *      - [X] add task
  *      - [X] task done
- *      - [ ] move up
- *      - [ ] move down
+ *      - [X] move up
+ *      - [X] move down
  *
  * New thing i learned is that "///" are doc comments
- * [ ] add doc comments to my code
+ * [X] add doc comments to my code
  */
 
 /// Simple structure to represent a task.
@@ -115,6 +115,73 @@ impl SortedTaskList {
             data: BTreeMap::new(),
         }
     }
+
+    fn move_up(&mut self, index: usize) {
+        // check for over and underflow
+        // do nothing
+        // index starts with 0 so >=
+        if index >= self.data.len() || index == 0 {
+            // print error and return
+            println!("over or underflow prevented");
+        } else {
+            let item_up = match self.data.get(&index) {
+                Some(x) => TaskItem {
+                    name: x.name.clone(),
+                    done: x.done,
+                },
+                None => panic!(), // already prevented this case by checking over and underflow
+            };
+            let new_pos: usize = index - 1;
+            let item_down = match self.data.get(&new_pos) {
+                Some(x) => TaskItem {
+                    name: x.name.clone(),
+                    done: x.done,
+                },
+                None => panic!(), // already prevented this case by checking over and underflow
+            };
+
+            // I dont need to remove becuase they item will get overwritten by the Key
+            //self.data.remove(&index);
+            //self.data.remove(&new_pos);
+            self.data.insert(new_pos, item_up);
+            self.data.insert(index, item_down);
+        }
+    }
+
+    /// move a item one position down in list
+    /// expects range from [0..n] but user will count
+    fn move_down(&mut self, index: usize) {
+        // check for over and underflow
+        // do nothing
+        // index 0 so just > len -1
+        if index >= (self.data.len() - 1) {
+            // print error and return
+            println!("over or underflow prevented");
+        } else {
+            let item_mv_down = match self.data.get(&index) {
+                Some(x) => TaskItem {
+                    name: x.name.clone(),
+                    done: x.done,
+                },
+                None => panic!(), // already prevented this case by checking over and underflow
+            };
+            let new_pos: usize = index + 1;
+            let item_swap = match self.data.get(&new_pos) {
+                Some(x) => TaskItem {
+                    name: x.name.clone(),
+                    done: x.done,
+                },
+                None => panic!(), // already prevented this case by checking over and underflow
+            };
+
+            // I dont need to remove becuase they item will get overwritten by the Key
+            //self.data.remove(&index);
+            //self.data.remove(&new_pos);
+            self.data.insert(new_pos, item_mv_down);
+            self.data.insert(index, item_swap);
+        }
+    }
+
 
     fn remove_by_index(&mut self, index: usize) {
         // I could use the rutrn value Some, None to print a verbose output
@@ -232,7 +299,7 @@ impl TaskFileIO {
     }
 
     /// Will write the yaml string to the specified file
-    /// Set `path` and `fileneame` before usage 
+    /// Set `path` and `fileneame` before usage
     fn write_file(&self, yaml: String) -> () {
         let full_path = format!("{}{}", self.path, self.filename);
         let path = std::path::Path::new(&full_path);
@@ -251,8 +318,8 @@ impl TaskFileIO {
             Ok(_) => println!("successfully wrote to {}", display),
         }
     }
-    
-    /// reads from file and 
+
+    /// reads from file and
     /// returns the yamls as std::String
     fn read_file(&self) -> String {
         let full_path = format!("{}{}", self.path, self.filename);
@@ -276,6 +343,8 @@ enum Action {
     Add,
     List,
     Done,
+    MoveUp,
+    MoveDown,
     Nop, // No Operation
 }
 
@@ -304,7 +373,9 @@ impl TaskOperator {
         // also i dont need to pass task_list into this function which doesnt make sense
 
         let mut parse_option = Action::Nop;
-
+        // what about endless add and done without changing state
+        // like sqiq add "one task" "and another"
+        // siqi done 1 2 3 4 5
         for parameter in args.iter().skip(1) {
             match parse_option {
                 Action::Nop => {
@@ -320,6 +391,12 @@ impl TaskOperator {
                         "done" => {
                             parse_option = Action::Done;
                         }
+                        "up" => {
+                            parse_option = Action::MoveUp;
+                        }
+                        "down" => {
+                            parse_option = Action::MoveDown;
+                        }
                         _ => {
                             println!("unkown option");
                             // just abort with message how to use the programm?
@@ -333,13 +410,33 @@ impl TaskOperator {
                         done: false,
                     };
                     self.list.push(new_task);
+                    parse_option = Action::Nop;
                 }
                 Action::Done => {
                     let index = match parameter.parse::<usize>() {
                         Ok(u) => u,
-                        Err(e) => panic!(), // print error message abort
+                        Err(e) => panic!("{}", e), // print error message abort
                     };
                     self.list.task_done_by_index(index);
+                    parse_option = Action::Nop;
+                }
+                Action::MoveUp => {
+                    let index = match parameter.parse::<usize>() {
+                        Ok(u) => u,
+                        Err(e) => panic!("{}", e), // print error message abort
+                    };
+                    // expects range [0..n] but user will input [1..n+1]
+                    self.list.move_up(index-1);
+                    parse_option = Action::Nop;
+                }
+                Action::MoveDown => {
+                    let index = match parameter.parse::<usize>() {
+                        Ok(u) => u,
+                        Err(e) => panic!("{}", e), // print error message abort
+                    };
+                    self.list.move_down(index - 1); // expects range from [0..n] but user will count
+                                              // [1..n+1]
+                    parse_option = Action::Nop;
                 }
                 _ => {
                     println!("no action");
@@ -364,7 +461,7 @@ fn main() {
     let mut cli = TaskOperator::new(task_file_io.read_file());
     cli.parse_commandstring(args);
 
-    /* before end 
+    /* before end
      * save everything
      */
     task_file_io.write_file(cli.list.to_yaml());

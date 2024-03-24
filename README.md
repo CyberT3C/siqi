@@ -135,8 +135,8 @@ Docs - missing link
     - [X] Mark task as done
     - [ ] Uncheck done task
     - [X] Create cli integration
-        - [ ] Add MoveUp Feature
-        - [ ] Add MoveDown Feature
+        - [X] Add MoveUp Feature
+        - [X] Add MoveDown Feature
 - [ ] Code Review
 - [ ] Refactor Codebase
 - [ ] Add Changelog
