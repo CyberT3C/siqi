@@ -144,20 +144,23 @@ Docs - missing link
     - [X] Create cli integration
         - [X] Add MoveUp Feature
         - [X] Add MoveDown Feature
-- [ ] Code Review
-- [ ] Refactor Codebase
-- [ ] Add Changelog
 - [ ] Build with nix
 - [ ] Release v0.1
-- [ ] Support different OSs
-    - [ ] Linux
-    - [ ] Windows
-    - [ ] Mac
+- [ ] Create v0.2
+    - [ ] Feature: Sync between `.task.` file and [Roadmap] in `README.md`
+    - [ ] Code Review
+    - [ ] Refactor Codebase
+    - [ ] Add Changelog
+- [ ] Release v0.2 for multiple OSs
+    - [ ] Support support for
+        - [ ] Linux
+        - [ ] Windows
+        - [ ] Mac
 
 My longterm goal is to build a simple cli tool which will store tasks in a `default.task` file in the current directory.
-Publish / Update tasks from `default.task` file into `README.md` - I am talking about "root" tasks.
+Publish / Update tasks from `default.task` file into `README.md`
 
-Maybe: Integrate this tool with other task / project management tools, like Github, Gitlab or Jira.
+Dreams: Integrate this tool with other task / project management tools, like Github, Gitlab or Jira.
 
 See the [open issues](https://github.com/CyberT3C/siqi/issues) for a full list of proposed features (and known issues).
 
