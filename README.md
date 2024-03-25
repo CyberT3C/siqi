@@ -54,14 +54,21 @@
 ## About The Project
 Creating a super simple task cli tool.
 
-Project Management Tools are nice and super helpfull but they take alot of effort to setup and customize. Alot of the time the best way to star a project is by "just do it!". For that is like init git and create a readme.md file. I always end up bulding a todo.txt or todo.md or write the first todos as comments straight into my code file. To standardize this process i am creating this simple tool. If it will be handy, I will end up support integration to other tools with UI.
-
-Also nice to have everything it git. Alot of the tools are using a database or a special file format. Thats why i am just using a simple .yaml notation
-
 My longterm goal is to build a simple cli tool which will store tasks in a `default.task` file in the current directory.
 Publish / Update tasks from default file into `README.md`.
 
-PS: I want to learn rust and this is my project to do so.
+Also nice to have everything it git. Alot of the tools are using a databases or a special file format which make things just bloated or complitcated. That's why I am just using a simple .yaml notation
+
+I might end up loading every *.task file or make a config file for that but at the moment i dont even know if i will go that far with this.
+
+
+Initial thoughts: 
+Project Management Tools are nice and super helpfull but they take alot of effort to setup and customize. Alot of the time the best way to star a project is by "just do it!". For that is like init git and create a readme.md file. I always end up bulding a todo.txt or todo.md or write the first todos as comments straight into my code file. To standardize this process i am creating this simple tool.
+
+Let's see if it will be handy and where the jorney takes me.
+
+P.S.: I want to learn rust and this is my project to do so.
+P.P.S: This might be a do and forget forever project. Only the universe can tell if there will ever be a 1.0 release version.
 
 ### Built With
 
