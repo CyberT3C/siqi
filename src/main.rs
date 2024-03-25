@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::prelude::*;
@@ -7,22 +5,11 @@ use std::io::prelude::*;
 // add cli support
 use std::env;
 
-/* https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
+/* in the making
+ * [x] Build with nix - run nix-build
  *
- * TODO week after
- * [X] build with nix
- * [X] add cli support
- * [X] add cli options and map them
- * CLI supper buggy atm and option parsing ist not really implemented
- * i just made a quick test while "sleeping"
- *      - [X] list tasks
- *      - [X] add task
- *      - [X] task done
- *      - [X] move up
- *      - [X] move down
- *
- * New thing i learned is that "///" are doc comments
- * [X] add doc comments to my code
+ * Next Feature
+ * [ ] Uncheck finished task
  */
 
 /// Simple structure to represent a task.
@@ -345,7 +332,8 @@ enum Action {
     Done,
     MoveUp,
     MoveDown,
-    Nop, // No Operation
+    Nop,
+    Delete, // No Operation
 }
 
 struct TaskOperator {
@@ -397,6 +385,9 @@ impl TaskOperator {
                         "down" => {
                             parse_option = Action::MoveDown;
                         }
+                        "delete" => {
+                            parse_option = Action::Delete;
+                        }
                         _ => {
                             println!("unkown option");
                             // just abort with message how to use the programm?
@@ -435,6 +426,15 @@ impl TaskOperator {
                         Err(e) => panic!("{}", e), // print error message abort
                     };
                     self.list.move_down(index - 1); // expects range from [0..n] but user will count
+                                              // [1..n+1]
+                    parse_option = Action::Nop;
+                }
+                Action::Delete => {
+                    let index = match parameter.parse::<usize>() {
+                        Ok(u) => u,
+                        Err(e) => panic!("{}", e), // print error message abort
+                    };
+                    self.list.remove_by_index(index - 1); // expects range from [0..n] but user will count
                                               // [1..n+1]
                     parse_option = Action::Nop;
                 }

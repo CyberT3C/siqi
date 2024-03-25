@@ -91,17 +91,14 @@ To get a local copy up and running follow these simple example steps.
 
 ### Installation
 
-9. Clone the repo
+1. Clone the repo
    ```sh
    git clone https://github.com/CyberT3C/siqi
    ```
-3. Install Rust
+
+2. Build
    ```sh
-   ask your favorit AI 
-   ```
-4. Build
-   ```sh
-    cargo build
+   nix-build
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
