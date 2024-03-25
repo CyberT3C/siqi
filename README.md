@@ -129,7 +129,7 @@ Docs - missing link
  
 - [X] Initial Readme
 - [X] Create local POC
-- [ ] Create Alpha Version
+- [X] Create Alpha Version
     - [X] Build a task list 
     - [X] Save to file
     - [X] Read from file
@@ -137,11 +137,11 @@ Docs - missing link
     - [X] Delete task
     - [X] View all tasks
     - [X] Mark task as done
-    - [ ] Uncheck done task
+    - [X] Uncheck done task
     - [X] Create cli integration
         - [X] Add MoveUp Feature
         - [X] Add MoveDown Feature
-- [ ] Build with nix
+- [X] Build with nix
 - [ ] Release v0.1
 - [ ] Create v0.2
     - [ ] Feature: Sync between `.task.` file and [Roadmap] in `README.md`

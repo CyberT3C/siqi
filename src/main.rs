@@ -9,7 +9,7 @@ use std::env;
  * [x] Build with nix - run nix-build
  *
  * Next Feature
- * [ ] Uncheck finished task
+ * [X] Uncheck finished task
  */
 
 /// Simple structure to represent a task.
@@ -193,6 +193,18 @@ impl SortedTaskList {
         }
     }
 
+    fn task_open_by_index(&mut self, index: usize) {
+        if let Some(task_item) = self.data.get(&index) {
+            let updated_task = TaskItem {
+                name: task_item.name.clone(),
+                done: false,
+            };
+            self.data.insert(index, updated_task);
+        } else {
+            println!("Error: cannot find task with index {}", index);
+        }
+    }
+
     fn print(&self) {
         for (_, item) in self.data.iter() {
             println!(
@@ -330,6 +342,7 @@ enum Action {
     Add,
     List,
     Done,
+    Open,
     MoveUp,
     MoveDown,
     Nop,
@@ -379,6 +392,9 @@ impl TaskOperator {
                         "done" => {
                             parse_option = Action::Done;
                         }
+                        "open" => {
+                            parse_option = Action::Open;
+                        }
                         "up" => {
                             parse_option = Action::MoveUp;
                         }
@@ -408,7 +424,17 @@ impl TaskOperator {
                         Ok(u) => u,
                         Err(e) => panic!("{}", e), // print error message abort
                     };
-                    self.list.task_done_by_index(index);
+                    // expects range [0..n] but user will input [1..n+1]
+                    self.list.task_done_by_index(index-1);
+                    parse_option = Action::Nop;
+                }
+                Action::Open => {
+                    let index = match parameter.parse::<usize>() {
+                        Ok(u) => u,
+                        Err(e) => panic!("{}", e), // print error message abort
+                    };
+                    // expects range [0..n] but user will input [1..n+1]
+                    self.list.task_open_by_index(index-1);
                     parse_option = Action::Nop;
                 }
                 Action::MoveUp => {
