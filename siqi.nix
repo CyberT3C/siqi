@@ -1,13 +1,21 @@
 # siqi.nix
 { lib
-, stdenv
-, fetchFromGitHub
+, rustPlatform
 }:
+let
+  manifest = (lib.importTOML ./Cargo.toml).package;
+in
+rustPlatform.buildRustPackage {
 
-stdenv.mkDerivation {
-  name = "siqi";
+    name = manifest.name;
+    src = lib.cleanSource ./.;
+  
+    cargoLock.lockFile = ./Cargo.lock;
 
-  src = fetchFromGitHub{
-    repo = "siqi";
-  };
+    meta = with lib; {
+      description = "changeme";
+      license = licenses.mit;
+      homepage = "https://github.com/CyberT3C/siqi";
+      mainProgram = "siqi";
+    };
 }
