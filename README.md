@@ -142,7 +142,7 @@ Docs - missing link
         - [X] Add MoveUp Feature
         - [X] Add MoveDown Feature
 - [X] Build with nix
-- [ ] Release v0.1
+- [X] Release v0.1
 - [ ] Create v0.2
     - [ ] Feature: Sync between `.task.` file and [Roadmap] in `README.md`
     - [ ] Code Review
